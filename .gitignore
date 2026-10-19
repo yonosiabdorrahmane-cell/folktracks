@@ -1,0 +1,17 @@
+# Fichiers système et de système de fichiers
+.DS_Store
+Thumbs.db
+*~
+
+# Fichiers et dossiers d'éditeurs (VS Code, Neovim, JetBrains)
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Fichiers de logs et temporaires
+*.log
+.cache/
+
+# Si tu génères des fichiers locaux pour tester le serveur tunnel
+serve.log

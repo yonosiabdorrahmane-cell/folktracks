@@ -1,0 +1,159 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Folktracks — motion: panels, sheets, view transitions, toasts
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Full-screen panels (Settings, food detail, onboarding…) ───────── */
+.panel-root { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+.panel-root:empty { display: none; }
+
+.panel-scrim {
+  position: absolute; inset: 0; pointer-events: auto;
+  background: rgba(6,8,14,.34);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+  opacity: 0; transition: opacity 320ms var(--e-out);
+}
+.panel-scrim.on { opacity: 1; }
+
+.panel {
+  position: absolute; inset: 0; pointer-events: auto;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transform-origin: 50% 100%;
+}
+.panel.rounded { inset: max(var(--sat), 10px) 0 0; border-radius: var(--r-xl) var(--r-xl) 0 0; }
+
+/* Entrance used when motion is reduced */
+.panel.anim-rise { animation: panel-rise 460ms var(--e-out) both; }
+.panel.anim-fall { animation: panel-rise 340ms var(--e-inout) reverse both; }
+@keyframes panel-rise { from { transform: translateY(100%); opacity: .4; } }
+
+.panel.anim-zoom { animation: panel-zoom 420ms var(--e-out) both; }
+@keyframes panel-zoom { from { transform: scale(.9); opacity: 0; } }
+
+.panel-head {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: var(--s3);
+  padding: calc(var(--sat) + 14px) 16px 12px;
+  position: relative; z-index: 2;
+}
+.panel.rounded .panel-head { padding-top: 16px; }
+.panel-grabber {
+  position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+  width: 38px; height: 5px; border-radius: 3px; background: var(--fill-2);
+}
+.panel-title { font: 700 19px/1.2 var(--font); letter-spacing: -.02em; flex: 1 1 auto; text-align: center; }
+.panel-body { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+
+/* ── View (tab) transitions ───────────────────────────────────────── */
+.view {
+  position: absolute; inset: 0;
+  overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 4px calc(var(--sar) + 16px) var(--dock-total) calc(var(--sal) + 16px);
+  will-change: transform, opacity;
+}
+.view.enter-fwd { animation: v-in-fwd 420ms var(--e-out) both; }
+.view.enter-back { animation: v-in-back 420ms var(--e-out) both; }
+.view.leave-fwd { animation: v-out-fwd 300ms var(--e-inout) both; }
+.view.leave-back { animation: v-out-back 300ms var(--e-inout) both; }
+@keyframes v-in-fwd   { from { opacity: 0; transform: translate3d(22px,0,0) scale(.985); } }
+@keyframes v-in-back  { from { opacity: 0; transform: translate3d(-22px,0,0) scale(.985); } }
+@keyframes v-out-fwd  { to   { opacity: 0; transform: translate3d(-16px,0,0) scale(.99); } }
+@keyframes v-out-back { to   { opacity: 0; transform: translate3d(16px,0,0) scale(.99); } }
+[dir="rtl"] .view.enter-fwd { animation-name: v-in-back; }
+[dir="rtl"] .view.enter-back { animation-name: v-in-fwd; }
+
+/* Staggered content reveal — each card rises a beat after the last */
+.stagger > * { animation: rise-in 520ms var(--e-out) both; }
+.stagger > *:nth-child(1) { animation-delay: 20ms; }
+.stagger > *:nth-child(2) { animation-delay: 62ms; }
+.stagger > *:nth-child(3) { animation-delay: 104ms; }
+.stagger > *:nth-child(4) { animation-delay: 146ms; }
+.stagger > *:nth-child(5) { animation-delay: 188ms; }
+.stagger > *:nth-child(6) { animation-delay: 230ms; }
+.stagger > *:nth-child(7) { animation-delay: 268ms; }
+.stagger > *:nth-child(n+8) { animation-delay: 300ms; }
+@keyframes rise-in { from { opacity: 0; transform: translate3d(0,18px,0) scale(.985); } }
+
+/* ── Bottom sheets ────────────────────────────────────────────────── */
+.sheet-root { position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+.sheet-root:empty { display: none; }
+.sheet-scrim {
+  position: absolute; inset: 0; pointer-events: auto;
+  background: rgba(6,8,14,.4);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity 300ms var(--e-out);
+}
+.sheet-scrim.on { opacity: 1; }
+.sheet {
+  position: absolute; inset-inline: 0; bottom: 0; pointer-events: auto;
+  max-height: 92dvh; display: flex; flex-direction: column;
+  padding-bottom: calc(var(--sab) + 12px);
+  transform: translateY(100%);
+  transition: transform 480ms var(--e-out);
+  will-change: transform;
+}
+.sheet.on { transform: translateY(0); }
+.sheet.dragging { transition: none; }
+.sheet-head { position: relative; padding: 16px 18px 8px; flex: 0 0 auto; }
+.sheet-grab {
+  position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+  width: 38px; height: 5px; border-radius: 3px; background: var(--fill-2);
+}
+.sheet-title { font: 700 18px/1.25 var(--font); letter-spacing: -.02em; text-align: center; margin-top: 6px; }
+.sheet-sub { font: 500 13px/1.35 var(--font); color: var(--ink-3); text-align: center; margin-top: 3px; }
+.sheet-body { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding: 8px 18px 4px; }
+.sheet-foot { flex: 0 0 auto; padding: 12px 18px 0; display: grid; gap: 10px; }
+
+/* ── Toasts ───────────────────────────────────────────────────────── */
+.toast-root {
+  position: fixed; z-index: 95; inset-inline: 0;
+  bottom: calc(var(--sab) + var(--dock-h) + 26px);
+  display: grid; justify-items: center; gap: 8px; pointer-events: none;
+  padding: 0 16px;
+}
+.toast {
+  display: flex; align-items: center; gap: 10px;
+  max-width: 100%; padding: 11px 18px;
+  border-radius: var(--r-full);
+  font: 600 14px/1.3 var(--font); letter-spacing: -.01em;
+  animation: toast-in 460ms var(--e-spring) both;
+}
+.toast.out { animation: toast-out 260ms var(--e-inout) both; }
+.toast .ic { width: 18px; height: 18px; flex: 0 0 auto; }
+.toast.good .ic { color: var(--mint); }
+.toast.bad .ic { color: var(--rose); }
+@keyframes toast-in  { from { opacity: 0; transform: translateY(22px) scale(.9); } }
+@keyframes toast-out { to   { opacity: 0; transform: translateY(-8px) scale(.96); } }
+
+/* ── Micro-motion ─────────────────────────────────────────────────── */
+.pop-in { animation: pop-in 380ms var(--e-spring) both; }
+@keyframes pop-in { from { opacity: 0; transform: scale(.86); } }
+
+.count-flash { animation: count-flash 620ms var(--e-out); }
+@keyframes count-flash { 0% { color: var(--mint); transform: scale(1.1); } 100% { color: inherit; transform: scale(1); } }
+
+.shake { animation: shake 420ms var(--e-inout); }
+@keyframes shake { 10%,90%{transform:translateX(-2px)} 30%,70%{transform:translateX(4px)} 50%{transform:translateX(-4px)} }
+
+.pulse-ring::after {
+  content: ""; position: absolute; inset: -3px; border-radius: inherit;
+  box-shadow: 0 0 0 0 color-mix(in oklab, var(--tint, var(--mint)) 60%, transparent);
+  animation: pulse-ring 2.4s var(--e-out) infinite;
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--tint, var(--mint)) 55%, transparent); }
+  70%,100% { box-shadow: 0 0 0 14px transparent; }
+}
+
+/* Confetti-lite: level-up burst */
+.burst { position: fixed; z-index: 96; pointer-events: none; inset: 0; overflow: hidden; }
+.burst i {
+  position: absolute; width: 8px; height: 8px; border-radius: 2px;
+  animation: burst-fly 1100ms var(--e-out) forwards;
+}
+@keyframes burst-fly {
+  0%   { transform: translate3d(0,0,0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate3d(var(--bx), var(--by), 0) rotate(var(--br)) scale(.3); opacity: 0; }
+}
+

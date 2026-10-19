@@ -1,0 +1,340 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Folktracks — base: tokens, themes, reset, typography, layout scaffolding
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Design tokens ─────────────────────────────────────────────────── */
+:root {
+  /* Brand ramp */
+  --mint:   #5ff0c2;
+  --aqua:   #48c9ff;
+  --azure:  #4b8dff;
+  --violet: #a97bff;
+  --rose:   #ff6f9c;
+  --amber:  #ffb545;
+  --coral:  #ff7a5c;
+
+  /* Macro identity colours (kept stable across themes) */
+  --c-kcal:    #4b8dff;
+  --c-protein: #5ff0c2;
+  --c-carbs:   #ffb545;
+  --c-fat:     #a97bff;
+  --c-water:   #22d3ee;
+
+  --grad-brand: linear-gradient(135deg, var(--mint) 0%, var(--aqua) 42%, var(--violet) 100%);
+  --grad-warm:  linear-gradient(135deg, var(--amber) 0%, var(--coral) 55%, var(--rose) 100%);
+
+  /* Radii — Apple-ish continuous corners */
+  --r-xs: 10px;  --r-sm: 14px;  --r-md: 20px;
+  --r-lg: 28px;  --r-xl: 34px;  --r-full: 999px;
+
+  /* Spacing */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px;
+  --s5: 20px; --s6: 24px; --s7: 32px; --s8: 44px;
+
+  /* Type */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+          "Inter", "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-num: -apple-system, "SF Pro Display", "SF Mono", ui-rounded, var(--font);
+
+  /* Motion */
+  --e-out:    cubic-bezier(.22, 1, .36, 1);
+  --e-inout:  cubic-bezier(.65, 0, .35, 1);
+  --e-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --t-fast: 160ms; --t-mid: 280ms; --t-slow: 460ms;
+
+  /* Safe areas */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+
+  --dock-h: 66px;
+  /* Everything a scroll view must clear to sit above the dock. */
+  --dock-total: calc(var(--dock-h) + var(--sab) + 30px);
+  --topbar-h: 58px;
+  --motion: 1; /* scaled to 0 when reduced motion is on */
+}
+
+/* ── Light theme (default surface values) ──────────────────────────── */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-0: #eef0f6;
+  --bg-1: #f7f8fc;
+  --ink-1: #0b0d14;
+  --ink-2: #4a5061;
+  --ink-3: #838a9c;
+  --ink-inv: #ffffff;
+
+  --glass-tint:  rgba(255,255,255,.56);
+  --glass-tint-2:rgba(255,255,255,.38);
+  --glass-deep:  rgba(255,255,255,.74);
+  --glass-edge:  rgba(255,255,255,.85);
+  --glass-line:  rgba(9,12,24,.09);
+  --glass-spec:  rgba(255,255,255,.95);
+  --glass-shade: rgba(12,16,32,.10);
+  --plate:    rgba(246,247,252,.88);
+  --plate-hi: rgba(252,253,255,.94);
+  --shadow-1: 0 1px 2px rgba(12,16,32,.06), 0 6px 18px rgba(12,16,32,.07);
+  --shadow-2: 0 2px 6px rgba(12,16,32,.08), 0 18px 44px rgba(12,16,32,.13);
+  --shadow-3: 0 30px 80px rgba(12,16,32,.22);
+  --hairline: rgba(9,12,24,.08);
+  --fill-1: rgba(9,12,24,.05);
+  --fill-2: rgba(9,12,24,.09);
+  --wall-a: #a8e6ff; --wall-b: #ffd6ec; --wall-c: #c9f7e2; --wall-base: #eef1f8;
+  --grain-opacity: .22;
+}
+
+/* ── Dark theme ────────────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-0: #06070b;
+  --bg-1: #0d0f16;
+  --ink-1: #f4f6fb;
+  --ink-2: #a7aec1;
+  --ink-3: #6d7488;
+  --ink-inv: #06070b;
+
+  --glass-tint:  rgba(140,152,190,.16);
+  --glass-tint-2:rgba(140,152,190,.10);
+  --glass-deep:  rgba(22,26,38,.62);
+  --glass-edge:  rgba(255,255,255,.16);
+  --glass-line:  rgba(255,255,255,.10);
+  --glass-spec:  rgba(255,255,255,.55);
+  --glass-shade: rgba(0,0,0,.42);
+  --plate:    rgba(17,19,28,.90);
+  --plate-hi: rgba(26,29,40,.94);
+  --shadow-1: 0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.36);
+  --shadow-2: 0 2px 8px rgba(0,0,0,.45), 0 22px 50px rgba(0,0,0,.5);
+  --shadow-3: 0 34px 90px rgba(0,0,0,.65);
+  --hairline: rgba(255,255,255,.09);
+  --fill-1: rgba(255,255,255,.06);
+  --fill-2: rgba(255,255,255,.11);
+  --wall-a: #1b4ea8; --wall-b: #6a2c8f; --wall-c: #0b6b63; --wall-base: #06070b;
+  --grain-opacity: .30;
+}
+
+/* System-following mode: no data-theme attribute is forced by the app,
+   we mirror the OS instead (also drives the iOS status bar via meta). */
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="system"] {
+    color-scheme: dark;
+    --bg-0: #06070b; --bg-1: #0d0f16;
+    --ink-1: #f4f6fb; --ink-2: #a7aec1; --ink-3: #6d7488; --ink-inv: #06070b;
+    --glass-tint: rgba(140,152,190,.16); --glass-tint-2: rgba(140,152,190,.10);
+    --glass-deep: rgba(22,26,38,.62); --glass-edge: rgba(255,255,255,.16);
+    --glass-line: rgba(255,255,255,.10); --glass-spec: rgba(255,255,255,.55);
+    --glass-shade: rgba(0,0,0,.42);
+    --plate: rgba(17,19,28,.90); --plate-hi: rgba(26,29,40,.94);
+    --shadow-1: 0 1px 2px rgba(0,0,0,.4), 0 8px 22px rgba(0,0,0,.36);
+    --shadow-2: 0 2px 8px rgba(0,0,0,.45), 0 22px 50px rgba(0,0,0,.5);
+    --shadow-3: 0 34px 90px rgba(0,0,0,.65);
+    --hairline: rgba(255,255,255,.09);
+    --fill-1: rgba(255,255,255,.06); --fill-2: rgba(255,255,255,.11);
+    --wall-a: #1b4ea8; --wall-b: #6a2c8f; --wall-c: #0b6b63; --wall-base: #06070b;
+    --grain-opacity: .30;
+  }
+}
+
+/* ── Reset ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--bg-0);
+  color: var(--ink-1);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  user-select: none;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: 1.42;
+  transition: background var(--t-mid) var(--e-out), color var(--t-mid) var(--e-out);
+}
+input, textarea, select, [contenteditable] { user-select: text; -webkit-user-select: text; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+h1,h2,h3,h4,p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+svg.ic { width: 22px; height: 22px; display: block; fill: none; color: inherit; }
+img { max-width: 100%; display: block; }
+::-webkit-scrollbar { width: 0; height: 0; }
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--azure); outline-offset: 2px; border-radius: 8px; }
+
+[dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+
+/* ── Ambient wallpaper ─────────────────────────────────────────────── */
+.wallpaper {
+  position: fixed; inset: -12%;
+  background: var(--wall-base);
+  z-index: 0;
+  pointer-events: none;
+  transition: background var(--t-slow) var(--e-out);
+}
+.orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(72px);
+  opacity: .78;
+  will-change: transform;
+}
+.orb-a { width: 62vw; height: 62vw; background: var(--wall-a); top: -6%;  left: -12%;
+         animation: drift-a calc(28s / var(--motion, 1)) var(--e-inout) infinite alternate; }
+.orb-b { width: 58vw; height: 58vw; background: var(--wall-b); top: 30%;  right: -18%;
+         animation: drift-b calc(34s / var(--motion, 1)) var(--e-inout) infinite alternate; }
+.orb-c { width: 70vw; height: 70vw; background: var(--wall-c); bottom: -14%; left: 8%;
+         animation: drift-c calc(41s / var(--motion, 1)) var(--e-inout) infinite alternate; }
+@keyframes drift-a { to { transform: translate3d(14vw, 10vh, 0) scale(1.15); } }
+@keyframes drift-b { to { transform: translate3d(-16vw, -12vh, 0) scale(1.2); } }
+@keyframes drift-c { to { transform: translate3d(10vw, -14vh, 0) scale(.88); } }
+/* ── Folk ──────────────────────────────────────────────────────────────
+   The mascot, stretched absurdly tall and washed almost all the way out,
+   sitting in the wallpaper layer. That placement matters: every glass
+   surface backdrop-filters this layer, so he is refracted and blurred by
+   the cards on top of him rather than merely sitting behind them.
+   Painted once, never animated, and inert to input. */
+.folk {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background-image: url("../assets/characters/folk-bg.png");
+  background-repeat: no-repeat;
+  background-position: 50% 46%;
+  /* Taller than the viewport on purpose — the crop is part of the joke. */
+  background-size: auto min(128vh, 1120px);
+  opacity: var(--folk-opacity);
+  mix-blend-mode: var(--folk-blend);
+}
+/* The two themes need opposite blends. On dark, `screen` lets his pale
+   fur and those eyes come up out of the background; on light, `multiply`
+   lets the dark parts settle into the page. soft-light reads as nothing
+   in either direction — a dark image over a dark ground just vanishes. */
+:root { --folk-opacity: .17; --folk-blend: multiply; }
+:root[data-theme="dark"] { --folk-opacity: .24; --folk-blend: screen; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --folk-opacity: .24; --folk-blend: screen; }
+}
+
+.grain {
+  position: absolute; inset: 0; opacity: var(--grain-opacity); mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+html[data-motion="off"] .orb { animation: none; }
+
+/* ── Boot ──────────────────────────────────────────────────────────── */
+.boot {
+  position: fixed; inset: 0; z-index: 999;
+  display: grid; place-content: center; justify-items: center; gap: 18px;
+  background: var(--bg-0);
+  transition: opacity 520ms var(--e-out), transform 520ms var(--e-out);
+}
+.boot.gone { opacity: 0; transform: scale(1.06); pointer-events: none; }
+.boot-mark { animation: boot-pop 900ms var(--e-spring) both; }
+.boot-name {
+  font: 600 13px/1 var(--font); letter-spacing: .42em; color: var(--ink-3);
+  padding-inline-start: .42em;
+  animation: boot-fade 900ms 180ms var(--e-out) both;
+}
+/* The launch tip. Sits under the wordmark, arrives last so the eye
+   lands on it after the mark has settled. */
+.boot-tip {
+  max-width: min(34ch, 76vw);
+  margin-block-start: 4px;
+  padding-inline: 8px;
+  text-align: center; text-wrap: balance;
+  font: 400 14px/1.55 var(--font);
+  letter-spacing: -.006em;
+  color: var(--ink-2);
+  animation: boot-fade 760ms 460ms var(--e-out) both;
+}
+.boot-tip:empty { display: none; }
+/* Arabic sits taller and needs the extra leading to breathe. */
+html[dir="rtl"] .boot-tip { line-height: 1.85; letter-spacing: 0; }
+
+@keyframes boot-pop { from { opacity: 0; transform: scale(.72) translateY(10px); } }
+@keyframes boot-fade { from { opacity: 0; transform: translateY(8px); } }
+
+/* ── App shell ─────────────────────────────────────────────────────── */
+.app {
+  position: relative; z-index: 1;
+  height: 100%; height: 100dvh;
+  display: flex; flex-direction: column;
+  animation: shell-in 620ms var(--e-out) both;
+}
+@keyframes shell-in { from { opacity: 0; transform: scale(.97); } }
+.app[hidden] { display: none; }
+
+.topbar {
+  position: relative; z-index: 30;
+  flex: 0 0 auto;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s3);
+  padding: calc(var(--sat) + 10px) calc(var(--sar) + 16px) 10px calc(var(--sal) + 18px);
+  min-height: calc(var(--sat) + var(--topbar-h));
+}
+.topbar-lead { min-width: 0; }
+.topbar-title {
+  font: 700 26px/1.12 var(--font); letter-spacing: -.024em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar-sub { font: 500 12.5px/1.3 var(--font); color: var(--ink-3); letter-spacing: -.005em; margin-top: 2px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; padding-bottom: 2px; }
+
+.icon-btn {
+  position: relative;
+  width: 40px; height: 40px; border-radius: var(--r-full);
+  display: grid; place-items: center; color: var(--ink-1);
+  transition: transform var(--t-fast) var(--e-spring), background var(--t-fast) var(--e-out);
+}
+.icon-btn:active { transform: scale(.9); }
+.gear-btn .ic { transition: transform 620ms var(--e-out); }
+.gear-btn:active .ic { transform: rotate(120deg); }
+.badge-num {
+  position: absolute; inset-inline-end: -3px; top: -3px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: var(--r-full);
+  background: var(--grad-warm); color: #fff;
+  font: 700 10.5px/18px var(--font-num); text-align: center;
+  box-shadow: 0 2px 6px rgba(255,122,92,.45);
+}
+.badge-num[data-zero="1"] { display: none; }
+
+.stage {
+  flex: 1 1 auto; position: relative; min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Utility ───────────────────────────────────────────────────────── */
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.muted { color: var(--ink-3); }
+.dim   { color: var(--ink-2); }
+.row { display: flex; align-items: center; gap: var(--s3); }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: var(--s3); }
+.grow { flex: 1 1 auto; min-width: 0; }
+.truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.center { display: grid; place-items: center; }
+.hidden { display: none !important; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── Reduced motion ────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion: .001; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
+}
+/* A class that sets `display` beats the UA's [hidden] rule, so any
+   button or flex item marked hidden stays stubbornly on screen. */
+[hidden] { display: none !important; }
+
+html[data-motion="off"] *, html[data-motion="off"] *::before, html[data-motion="off"] *::after {
+  animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+}

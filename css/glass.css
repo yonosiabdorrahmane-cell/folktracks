@@ -1,0 +1,301 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Folktracks — Liquid Glass material system
+
+   Every glass surface is built from four stacked optical layers:
+     1. the blurred + saturated backdrop        (backdrop-filter)
+     2. a translucent tint that gives it body   (background)
+     3. a specular rim: light caught on the bevel  (::before, masked ring)
+     4. an inner sheen that fakes light bending through the slab (::after)
+   ══════════════════════════════════════════════════════════════════════ */
+
+.glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-tint);
+  -webkit-backdrop-filter: blur(24px) saturate(190%) brightness(1.06);
+  backdrop-filter: blur(24px) saturate(190%) brightness(1.06);
+  box-shadow: var(--shadow-1),
+              inset 0 1px 0 0 var(--glass-spec),
+              inset 0 -1px 0 0 var(--glass-shade);
+  border-radius: var(--r-lg);
+  transition: background var(--t-mid) var(--e-out),
+              box-shadow var(--t-mid) var(--e-out),
+              transform var(--t-fast) var(--e-spring);
+}
+
+/* 3 — specular rim. A 1px ring lit from the top-left, dimming round the
+       curve, exactly like light catching the bevel of a glass slab. */
+.glass::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(145deg,
+    var(--glass-edge)  0%,
+    rgba(255,255,255,.10) 32%,
+    rgba(255,255,255,0)  52%,
+    rgba(255,255,255,.14) 78%,
+    var(--glass-edge) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* 4 — inner sheen. A soft diagonal wash + a top gloss band. */
+.glass::after {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 80% at 12% -10%, rgba(255,255,255,.30), rgba(255,255,255,0) 58%),
+    linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 34%);
+  opacity: .9; pointer-events: none;
+}
+:root[data-theme="dark"] .glass::after,
+:root[data-theme="system"] .glass::after { opacity: .55; }
+
+/* ── Depth variants ───────────────────────────────────────────────── */
+.glass-thin {
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  background: var(--glass-tint-2);
+  box-shadow: inset 0 1px 0 0 var(--glass-spec), inset 0 0 0 1px var(--glass-line);
+}
+.glass-thin::before { display: none; }
+
+.glass-card { border-radius: var(--r-lg); padding: var(--s5); }
+
+.glass-bar {
+  border-radius: 0;
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  backdrop-filter: blur(30px) saturate(200%);
+  background: linear-gradient(180deg, var(--glass-deep), var(--glass-tint));
+  box-shadow: 0 1px 0 0 var(--hairline);
+}
+.glass-bar::before { display: none; }
+.glass-bar::after {
+  background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 70%);
+}
+
+.glass-chip {
+  border-radius: var(--r-full);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  background: var(--glass-tint);
+  box-shadow: var(--shadow-1), inset 0 1px 0 0 var(--glass-spec);
+}
+
+/* Sheets and panels carry body text, so they sit on a near-opaque plate:
+   enough translucency to read as glass, enough opacity to read at all. */
+.glass-sheet {
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  -webkit-backdrop-filter: blur(40px) saturate(190%) brightness(1.03);
+  backdrop-filter: blur(40px) saturate(190%) brightness(1.03);
+  background: linear-gradient(180deg, var(--plate-hi) 0%, var(--plate) 42%);
+  box-shadow: var(--shadow-3), inset 0 1px 0 0 var(--glass-spec);
+}
+
+.glass-panel {
+  border-radius: 0;
+  -webkit-backdrop-filter: blur(34px) saturate(185%);
+  backdrop-filter: blur(34px) saturate(185%);
+  background: linear-gradient(180deg, var(--plate-hi), var(--plate) 40%);
+  box-shadow: var(--shadow-3);
+}
+.glass-panel::before { display: none; }
+
+/* ── Refraction rim: the "lens edge" that magnifies what's behind ────
+   A second backdrop pass, masked to the outer few pixels, with extra
+   contrast + a hair of blur. It makes the boundary read as thickness. */
+.lens { position: relative; }
+.lens::before {
+  content: ""; position: absolute; inset: 0; z-index: 0;
+  border-radius: inherit; pointer-events: none;
+  -webkit-backdrop-filter: blur(3px) brightness(1.14) saturate(150%) contrast(1.06);
+  backdrop-filter: blur(3px) brightness(1.14) saturate(150%) contrast(1.06);
+  -webkit-mask: radial-gradient(140% 140% at 50% 50%, transparent 62%, #000 88%);
+  mask: radial-gradient(140% 140% at 50% 50%, transparent 62%, #000 88%);
+}
+
+/* ── Interaction: press, lift, liquid sheen sweep ─────────────────── */
+.pressable { transition: transform 220ms var(--e-spring), filter 220ms var(--e-out); }
+.pressable:active { transform: scale(.965); filter: brightness(1.05); }
+
+.liquid { overflow: hidden; }
+.liquid > .sheen {
+  position: absolute; inset: -40% -60%; z-index: 2; pointer-events: none;
+  background: linear-gradient(105deg,
+      rgba(255,255,255,0) 38%, rgba(255,255,255,.42) 50%, rgba(255,255,255,0) 62%);
+  transform: translateX(-120%); opacity: 0;
+}
+.liquid.sweep > .sheen { animation: sheen-sweep 780ms var(--e-out) 1; }
+@keyframes sheen-sweep {
+  0%   { transform: translateX(-120%); opacity: 0; }
+  18%  { opacity: 1; }
+  100% { transform: translateX(120%); opacity: 0; }
+}
+
+/* ── Accent surfaces ──────────────────────────────────────────────── */
+.tinted {
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--tint, var(--azure)) 26%, transparent),
+                            color-mix(in oklab, var(--tint, var(--azure)) 6%, transparent)),
+    var(--glass-tint);
+  box-shadow: var(--shadow-1),
+              inset 0 1px 0 0 var(--glass-spec),
+              inset 0 0 0 1px color-mix(in oklab, var(--tint, var(--azure)) 22%, transparent);
+}
+
+.btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; height: 50px; padding: 0 22px;
+  border-radius: var(--r-full);
+  font: 600 16px/1 var(--font); letter-spacing: -.01em;
+  color: var(--ink-1);
+  transition: transform 200ms var(--e-spring), opacity var(--t-fast) var(--e-out);
+}
+.btn:active { transform: scale(.96); }
+.btn[disabled] { opacity: .4; pointer-events: none; }
+.btn-primary {
+  color: #06131f;
+  background: var(--grad-brand);
+  box-shadow: 0 6px 22px -6px color-mix(in oklab, var(--aqua) 70%, transparent),
+              inset 0 1px 0 0 rgba(255,255,255,.7);
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+  font-weight: 700;
+}
+.btn-primary::before, .btn-primary::after { display: none; }
+.btn-ghost { background: var(--fill-1); box-shadow: inset 0 0 0 1px var(--hairline); }
+.btn-danger { color: #fff; background: linear-gradient(135deg, #ff5f6d, #d9304a); box-shadow: 0 6px 20px -8px #ff5f6d; }
+.btn-block { width: 100%; }
+.btn-sm { height: 38px; padding: 0 16px; font-size: 14px; border-radius: var(--r-full); }
+
+/* ── Field controls ───────────────────────────────────────────────── */
+.field {
+  width: 100%; height: 50px; padding: 0 16px;
+  border: 0; border-radius: var(--r-sm);
+  background: var(--fill-1);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  color: var(--ink-1); font: 500 16px/1 var(--font);
+  transition: box-shadow var(--t-fast) var(--e-out), background var(--t-fast) var(--e-out);
+  -webkit-appearance: none; appearance: none;
+}
+.field:focus { box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--azure) 70%, transparent); background: var(--fill-2); }
+.field::placeholder { color: var(--ink-3); }
+select.field {
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-3) 50%),
+                    linear-gradient(135deg, var(--ink-3) 50%, transparent 50%);
+  background-position: right 18px center, right 12px center;
+  background-size: 6px 6px, 6px 6px; background-repeat: no-repeat;
+  padding-inline-end: 36px;
+}
+[dir="rtl"] select.field { background-position: left 12px center, left 18px center; }
+
+/* ── Dropdown ─────────────────────────────────────────────────────────
+   Replaces the native <select>, whose OS popup renders as a flat white
+   list on desktop no matter what the page theme is. The menu is fixed to
+   the viewport so the sheet's scroll container cannot clip it.
+   ─────────────────────────────────────────────────────────────────── */
+.dd-btn {
+  display: flex; align-items: center; gap: 10px;
+  text-align: start; cursor: pointer;
+  padding-inline-end: 14px;
+}
+.dd-label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-caret {
+  flex: 0 0 auto; width: 9px; height: 9px; margin-top: -3px;
+  /* Physical, not logical: rotated 45deg these draw a chevron, and a
+     down-chevron must still point down when the page mirrors. */
+  border-right: 1.8px solid var(--ink-3); border-bottom: 1.8px solid var(--ink-3);
+  border-bottom-right-radius: 1px;
+  transform: rotate(45deg);
+  transition: transform 260ms var(--e-spring), border-color 200ms var(--e-out);
+}
+.dd-btn[aria-expanded="true"] { background: var(--fill-2); box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--azure) 70%, transparent); }
+.dd-btn[aria-expanded="true"] .dd-caret { transform: rotate(-135deg) translate(-2px, -2px); border-color: var(--azure); }
+
+.dd-menu {
+  position: fixed; z-index: 120;
+  max-height: min(300px, 52dvh); overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px; border-radius: var(--r-md);
+  box-shadow: var(--shadow-3), inset 0 0 0 1px var(--glass-line);
+  opacity: 0; transform: translateY(-6px) scale(.97); transform-origin: top center;
+  transition: opacity 160ms var(--e-out), transform 260ms var(--e-spring);
+}
+.dd-menu.on { opacity: 1; transform: none; }
+
+.dd-opt {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px; border-radius: var(--r-sm);
+  background: transparent; border: 0; cursor: pointer;
+  color: var(--ink-1); font: 500 15px/1.2 var(--font); text-align: start;
+  transition: background 140ms var(--e-out);
+}
+.dd-opt > span:first-child { flex: 1 1 auto; }
+.dd-opt:hover, .dd-opt:focus-visible { background: var(--fill-1); outline: none; }
+.dd-opt:active { background: var(--fill-2); }
+.dd-opt[aria-selected="true"] { color: var(--azure); font-weight: 640; }
+.dd-tick {
+  flex: 0 0 auto; width: 6px; height: 11px; opacity: 0;
+  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: opacity 200ms var(--e-out);
+}
+.dd-opt[aria-selected="true"] .dd-tick { opacity: 1; }
+
+/* iOS switch */
+.switch { position: relative; width: 51px; height: 31px; flex: 0 0 auto; }
+.switch input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; }
+.switch .track {
+  position: absolute; inset: 0; border-radius: var(--r-full);
+  background: var(--fill-2); box-shadow: inset 0 0 0 1px var(--hairline);
+  transition: background 280ms var(--e-out);
+}
+.switch .knob {
+  position: absolute; top: 2px; inset-inline-start: 2px;
+  width: 27px; height: 27px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.05);
+  transition: transform 300ms var(--e-spring), width 200ms var(--e-out);
+}
+.switch input:checked ~ .track { background: linear-gradient(135deg, var(--mint), var(--aqua)); box-shadow: none; }
+.switch input:checked ~ .knob { transform: translateX(20px); }
+[dir="rtl"] .switch input:checked ~ .knob { transform: translateX(-20px); }
+.switch input:active ~ .knob { width: 32px; }
+
+/* Segmented control */
+.segmented {
+  position: relative; display: grid; gap: 2px; padding: 3px;
+  border-radius: var(--r-full); background: var(--fill-1);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  grid-auto-flow: column; grid-auto-columns: 1fr;
+}
+.segmented .seg-thumb {
+  position: absolute; top: 3px; bottom: 3px; z-index: 0;
+  border-radius: var(--r-full);
+  background: var(--glass-deep);
+  box-shadow: var(--shadow-1), inset 0 1px 0 0 var(--glass-spec);
+  transition: transform 420ms var(--e-spring), width 420ms var(--e-spring);
+}
+.segmented button {
+  position: relative; z-index: 1; height: 34px; border-radius: var(--r-full);
+  font: 600 13.5px/1 var(--font); color: var(--ink-2);
+  transition: color 240ms var(--e-out), transform 240ms var(--e-spring);
+  white-space: nowrap; padding: 0 8px;
+}
+.segmented button[aria-selected="true"] { color: var(--ink-1); }
+.segmented button:active { transform: scale(.94); }
+
+/* ── Field polish ─────────────────────────────────────────────────── */
+.search-bar input,
+input[type="search"] {
+  outline: none; border: 0;
+  -webkit-appearance: none; appearance: none;
+  background: transparent;
+}
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+.btn[aria-pressed="true"] .ic { fill: currentColor; }

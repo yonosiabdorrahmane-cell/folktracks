@@ -1,0 +1,133 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Folktracks — macOS magnification dock
+   JS writes --m (scale 1 → ~1.62) and --lift per item; CSS does the rest.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.dock-wrap {
+  position: relative; z-index: 40;
+  flex: 0 0 auto;
+  display: grid; place-items: center;
+  padding: 6px calc(var(--sar) + 12px) calc(var(--sab) + 10px) calc(var(--sal) + 12px);
+  pointer-events: none;
+}
+
+.dock {
+  pointer-events: auto;
+  position: relative;
+  display: flex; align-items: flex-end; justify-content: center;
+  gap: 4px;
+  padding: 7px 10px;
+  border-radius: var(--r-xl);
+  height: var(--dock-h);
+  max-width: min(430px, 100%);
+  -webkit-backdrop-filter: blur(30px) saturate(210%) brightness(1.08);
+  backdrop-filter: blur(30px) saturate(210%) brightness(1.08);
+  background: var(--glass-tint);
+  box-shadow: var(--shadow-2),
+              inset 0 1px 0 0 var(--glass-spec),
+              inset 0 -1px 0 0 var(--glass-shade);
+  transition: box-shadow var(--t-mid) var(--e-out), background var(--t-mid) var(--e-out);
+}
+.dock.magnifying { box-shadow: var(--shadow-3), inset 0 1px 0 0 var(--glass-spec); }
+
+.dock-reflection {
+  position: absolute; inset-inline: 14px; bottom: 3px; height: 10px; z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(60% 100% at 50% 0%, var(--glass-shade), transparent 72%);
+  filter: blur(4px); opacity: .7;
+}
+
+.dock-item {
+  --m: 1; --lift: 0px;
+  position: relative;
+  flex: 0 0 auto;
+  width: 50px; height: 50px;
+  display: grid; place-items: center;
+  border-radius: 16px;
+  color: var(--ink-2);
+  transform-origin: 50% 100%;
+  transform: translate3d(0, calc(var(--lift) * -1), 0) scale(var(--m));
+  transition: color 260ms var(--e-out), background 260ms var(--e-out);
+  will-change: transform;
+}
+/* Snap back with a spring when the finger leaves the dock */
+.dock.settling .dock-item { transition: transform 520ms var(--e-spring), color 260ms var(--e-out), background 260ms var(--e-out); }
+
+.dock-icon {
+  display: grid; place-items: center;
+  width: 42px; height: 42px; border-radius: 14px;
+  transition: background 280ms var(--e-out), box-shadow 280ms var(--e-out), transform 280ms var(--e-spring);
+}
+.dock-item .ic { width: 23px; height: 23px; }
+
+.dock-item[aria-selected="true"] { color: var(--ink-1); }
+.dock-item[aria-selected="true"] .dock-icon {
+  background: var(--fill-2);
+  box-shadow: inset 0 1px 0 0 var(--glass-spec), inset 0 0 0 1px var(--glass-line);
+}
+/* the running-app dot */
+.dock-item[aria-selected="true"]::after {
+  content: ""; position: absolute; bottom: -4px; left: 50%;
+  width: 4px; height: 4px; margin-inline-start: -2px; border-radius: 50%;
+  background: currentColor; opacity: .85;
+  animation: dot-in 340ms var(--e-spring) both;
+}
+@keyframes dot-in { from { transform: scale(0); opacity: 0; } }
+
+.dock-item:active .dock-icon { transform: scale(.86); }
+
+/* Armed: a finger is on the dock and this is the tab a release would
+   open. Drawn as a ring rather than motion so it still reads when the
+   magnification is switched off. */
+.dock-item.armed .dock-icon {
+  box-shadow: inset 0 0 0 1.5px color-mix(in oklab, var(--aqua) 75%, transparent),
+              0 0 0 3px color-mix(in oklab, var(--aqua) 20%, transparent);
+}
+.dock-item-primary.armed .dock-icon {
+  box-shadow: 0 6px 18px -6px color-mix(in oklab, var(--aqua) 80%, transparent),
+              inset 0 1px 0 0 rgba(255,255,255,.75),
+              0 0 0 3px color-mix(in oklab, var(--aqua) 32%, transparent);
+}
+/* While aiming, show the name of whatever is armed even before it has
+   grown enough to earn its label the usual way. */
+.dock.aiming .dock-item.armed .dock-label { opacity: 1; transform: translate(-50%, 0) scale(1); }
+html[data-motion="off"] .dock.aiming .dock-item.armed .dock-label { display: block; opacity: 1; }
+
+/* Center action — the accent well */
+.dock-item-primary { color: #06131f; }
+.dock-item-primary .dock-icon {
+  background: var(--grad-brand);
+  box-shadow: 0 6px 18px -6px color-mix(in oklab, var(--aqua) 80%, transparent),
+              inset 0 1px 0 0 rgba(255,255,255,.75);
+}
+.dock-item-primary .ic { width: 25px; height: 25px; stroke-width: 2.6; }
+.dock-item-primary[aria-selected="true"]::after { display: none; }
+
+/* Magnified label bubble (appears above the icon like macOS) */
+.dock-label {
+  position: absolute; bottom: calc(100% + 9px); left: 50%;
+  transform: translate(-50%, 6px) scale(.86);
+  padding: 5px 10px; border-radius: var(--r-full);
+  font: 600 11px/1 var(--font); letter-spacing: -.005em; white-space: nowrap;
+  color: var(--ink-1);
+  background: var(--glass-deep);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: var(--shadow-1), inset 0 0 0 1px var(--glass-line);
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms var(--e-out), transform 300ms var(--e-spring);
+}
+.dock-item.peak .dock-label { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+/* Bounce when a view launches (macOS dock bounce) */
+.dock-item.launching { animation: dock-bounce 620ms var(--e-out); }
+@keyframes dock-bounce {
+  0%   { transform: translate3d(0, calc(var(--lift) * -1), 0) scale(var(--m)); }
+  28%  { transform: translate3d(0, calc(var(--lift) * -1 - 16px), 0) scale(calc(var(--m) * 1.06)); }
+  55%  { transform: translate3d(0, calc(var(--lift) * -1 + 1px), 0) scale(calc(var(--m) * .98)); }
+  78%  { transform: translate3d(0, calc(var(--lift) * -1 - 5px), 0) scale(var(--m)); }
+  100% { transform: translate3d(0, calc(var(--lift) * -1), 0) scale(var(--m)); }
+}
+
+html[data-motion="off"] .dock-item { transform: none !important; }
+html[data-motion="off"] .dock-label { display: none; }
